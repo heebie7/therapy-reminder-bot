@@ -11,9 +11,14 @@ import asyncio
 
 # === CONFIG ===
 CALENDAR_ID = "heebie7@gmail.com"
-REMINDER_MINUTES_BEFORE = 60  # за час до встречи
 CHECK_INTERVAL_MINUTES = 5    # проверять каждые 5 минут
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+
+# Напоминания: (минуты до встречи, текст)
+REMINDERS = [
+    (60 * 24 * 6, "через 6 дней"),  # за 6 дней
+    (60, "через час"),               # за час
+]
 
 # === BOT TOKEN ===
 try:
@@ -77,20 +82,20 @@ def save_sent(sent):
     with open(SENT_FILE, "w", encoding="utf-8") as f:
         json.dump(sent, f)
 
-def mark_sent(event_id, event_time):
+def mark_sent(event_id, event_time, reminder_type):
     sent = load_sent()
-    key = f"{event_id}_{event_time}"
+    key = f"{event_id}_{event_time}_{reminder_type}"
     if key not in sent:
         sent.append(key)
-        # Keep only last 100 entries
-        if len(sent) > 100:
-            sent = sent[-100:]
+        # Keep only last 200 entries
+        if len(sent) > 200:
+            sent = sent[-200:]
         save_sent(sent)
     return key
 
-def was_sent(event_id, event_time):
+def was_sent(event_id, event_time, reminder_type):
     sent = load_sent()
-    return f"{event_id}_{event_time}" in sent
+    return f"{event_id}_{event_time}_{reminder_type}" in sent
 
 # === GOOGLE CALENDAR ===
 def get_calendar_service():
@@ -109,15 +114,15 @@ def get_calendar_service():
 
     return build('calendar', 'v3', credentials=creds)
 
-def get_upcoming_events():
-    """Get events happening in the next REMINDER_MINUTES_BEFORE + CHECK_INTERVAL_MINUTES minutes"""
+def get_upcoming_events(minutes_before):
+    """Get events happening around minutes_before from now"""
     try:
         service = get_calendar_service()
         now = datetime.utcnow()
 
-        # Window: from (REMINDER_MINUTES_BEFORE - CHECK_INTERVAL) to (REMINDER_MINUTES_BEFORE + CHECK_INTERVAL)
-        time_min = now + timedelta(minutes=REMINDER_MINUTES_BEFORE - CHECK_INTERVAL_MINUTES)
-        time_max = now + timedelta(minutes=REMINDER_MINUTES_BEFORE + CHECK_INTERVAL_MINUTES)
+        # Window: from (minutes_before - CHECK_INTERVAL) to (minutes_before + CHECK_INTERVAL)
+        time_min = now + timedelta(minutes=minutes_before - CHECK_INTERVAL_MINUTES)
+        time_max = now + timedelta(minutes=minutes_before + CHECK_INTERVAL_MINUTES)
 
         events_result = service.events().list(
             calendarId=CALENDAR_ID,
@@ -147,43 +152,48 @@ def extract_username_from_event(event):
 
 # === REMINDER JOB ===
 async def check_and_send_reminders(context):
-    """Check calendar and send reminders"""
+    """Check calendar and send reminders for all configured reminder times"""
     print(f"[{datetime.now()}] Checking calendar...")
-    events = get_upcoming_events()
 
-    for event in events:
-        event_id = event.get('id')
-        event_start = event.get('start', {}).get('dateTime', event.get('start', {}).get('date'))
-        event_summary = event.get('summary', 'Встреча')
+    for minutes_before, reminder_text in REMINDERS:
+        events = get_upcoming_events(minutes_before)
 
-        if was_sent(event_id, event_start):
-            continue
+        for event in events:
+            event_id = event.get('id')
+            event_start = event.get('start', {}).get('dateTime', event.get('start', {}).get('date'))
+            event_summary = event.get('summary', 'Встреча')
 
-        username = extract_username_from_event(event)
-        if not username:
-            print(f"  No username in event: {event_summary}")
-            continue
+            if was_sent(event_id, event_start, reminder_text):
+                continue
 
-        chat_id = get_chat_id(username)
-        if not chat_id:
-            print(f"  User @{username} not registered")
-            continue
+            username = extract_username_from_event(event)
+            if not username:
+                print(f"  No username in event: {event_summary}")
+                continue
 
-        # Format time nicely
-        try:
-            start_dt = datetime.fromisoformat(event_start.replace('Z', '+00:00'))
-            time_str = start_dt.strftime('%H:%M')
-        except:
-            time_str = event_start
+            chat_id = get_chat_id(username)
+            if not chat_id:
+                print(f"  User @{username} not registered")
+                continue
 
-        # Send reminder
-        try:
-            message = f"Напоминание: {event_summary} через час ({time_str})"
-            await context.bot.send_message(chat_id=chat_id, text=message)
-            mark_sent(event_id, event_start)
-            print(f"  Sent reminder to @{username} for {event_summary}")
-        except Exception as e:
-            print(f"  Error sending to @{username}: {e}")
+            # Format date/time nicely
+            try:
+                start_dt = datetime.fromisoformat(event_start.replace('Z', '+00:00'))
+                if minutes_before > 60 * 24:  # больше суток — показываем дату
+                    time_str = start_dt.strftime('%d.%m в %H:%M')
+                else:
+                    time_str = start_dt.strftime('%H:%M')
+            except:
+                time_str = event_start
+
+            # Send reminder
+            try:
+                message = f"Напоминание: {event_summary} {reminder_text} ({time_str})"
+                await context.bot.send_message(chat_id=chat_id, text=message)
+                mark_sent(event_id, event_start, reminder_text)
+                print(f"  Sent '{reminder_text}' reminder to @{username} for {event_summary}")
+            except Exception as e:
+                print(f"  Error sending to @{username}: {e}")
 
 # === BOT HANDLERS ===
 TEST, QUESTION, FINISH = range(3)
