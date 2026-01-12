@@ -1,0 +1,109 @@
+[
+    {
+      "name": "Tactile Sensitivity",
+      "description": "",
+      "questions": [
+        {
+          "q": "Expresses distress during grooming (for example, fights or cries during haircutting, face washing, fingernail cutting)",
+          "a": {
+            "Always": 1,
+            "Frequently": 2,
+            "Occasionally": 3,
+            "Seldom": 4,
+            "Never": 5
+          }
+        },
+        {
+          "q": "Prefers long-sleeved clothing when it is warm or short sleeves when it is cold",
+          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
+        },
+        {
+          "q": "Reacts emotionally or aggressively to touch",
+          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
+        },
+        {
+          "q": "Avoids going barefoot, especially in sand or grass",
+          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
+        },
+        {
+          "q": "Withdraws from splashing water",
+          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
+        },
+        {
+          "q": "Has difficulty standing in line or close to other people",
+          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
+        },
+        {
+          "q": "Rubs or scratches out a spot that has been touched",
+          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
+        }
+      ]
+    },
+    {
+      "name": "Taste/Smell Sensitivity",
+      "description": "",
+      "questions": [
+        { "q": "Avoids certain tastes or food smells", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Limits self to particular food textures/temperatures", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Picky eater, especially regarding food textures", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
+      ]
+    },
+    {
+      "name": "Movement Sensitivity",
+      "description": "",
+      "questions": [
+        { "q": "Becomes anxious or distressed when feet leave the ground", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Fears falling or heights", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Dislikes activities where the head is upside down (for example, somersaults, roughhousing)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
+      ]
+    },
+    {
+      "name": "Underresponsive/Seeks Sensation",
+      "description": "",
+      "questions": [
+        { "q": "Enjoys strange noises/seeks to make noise for noise’s sake", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Seeks all kinds of movement and this interferes with daily routines (for example, can’t sit still, fidgets)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Touches people and objects", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Becomes overly excitable during movement activity", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Doesn’t seem to notice when face or hands are messy", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Jumps from one activity to another so that it interferes with play", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Leaves clothing twisted on body", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
+      ]
+    },
+    {
+      "name": "Auditory Filtering",
+      "description": "",
+      "questions": [
+        { "q": "Is distracted or has trouble functioning if there is a lot of noise around", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Appears to not hear what you say (for example, does not 'tune-in' to what you say, appears to ignore you)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Has trouble completing tasks when the radio is on", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Can’t work with background noise (for example, fan, refrigerator)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Doesn’t respond when name is called but you know hearing is OK", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Has difficulty paying attention", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
+      ]
+    },
+    {
+      "name": "Low Energy/Weak",
+      "description": "",
+      "questions": [
+        { "q": "Seems to have weak muscles", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Tires easily, especially when standing or holding particular body position", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Can’t lift heavy objects (for example, weak in comparison to same age children)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Has a weak grasp", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Props to support self (even during activity)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Poor endurance/tires easily", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
+      ]
+    },
+    {
+      "name": "Visual/Auditory Sensitivity",
+      "description": "",
+      "questions": [
+        { "q": "Responds negatively to unexpected noises (for example, cries or hides at noise from vacuum cleaner, dog barking, hair dryer)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Holds hands over ears to protect ears from sounds", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Watches everyone when they move around the room", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Is bothered by bright lights after others have adapted to the light", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
+        { "q": "Covers eyes or squints to protect eyes from light", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
+      ]
+    }
+  ]
+  

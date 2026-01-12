@@ -1,0 +1,198 @@
+[
+    {
+      "name": "Beck Depression Inventory",
+      "description": "You are presented with a series of statements.\nChoose one statement in each group that best describes how you have felt during the past week, including today.\nBefore making your choice, carefully read all statements in each group.",
+      "questions": [
+        {
+          "q": "1. Sadness",
+          "a": {
+            "I do not feel sad.": 0,
+            "I feel down.": 1,
+            "I am sad all the time and can't snap out of it.": 2,
+            "I am so sad or unhappy that I can't stand it.": 3
+          }
+        },
+        {
+          "q": "2. Pessimism",
+          "a": {
+            "I am not discouraged about the future.": 0,
+            "I feel discouraged about the future.": 1,
+            "I feel I have nothing to look forward to.": 2,
+            "The future is hopeless and things cannot improve.": 3
+          }
+        },
+        {
+          "q": "3. Sense of Failure",
+          "a": {
+            "I do not feel like a failure.": 0,
+            "I have failed more than the average person.": 1,
+            "Looking back, I see a lot of failures.": 2,
+            "I feel I am a total failure as a person.": 3
+          }
+        },
+        {
+          "q": "4. Pleasure",
+          "a": {
+            "I get as much pleasure out of things as I used to.": 0,
+            "I don't enjoy things as much as I used to.": 1,
+            "I get very little pleasure from anything.": 2,
+            "I can't get any pleasure from things I used to enjoy.": 3
+          }
+        },
+        {
+          "q": "5. Guilt Feelings",
+          "a": {
+            "I do not feel particularly guilty.": 0,
+            "I feel guilty a good part of the time.": 1,
+            "I feel quite guilty most of the time.": 2,
+            "I feel guilty all of the time.": 3
+          }
+        },
+        {
+          "q": "6. Punishment Feelings",
+          "a": {
+            "I don't feel I am being punished.": 0,
+            "I feel I may be punished.": 1,
+            "I expect to be punished.": 2,
+            "I feel I am being punished.": 3
+          }
+        },
+        {
+          "q": "7. Self-Dislike",
+          "a": {
+            "I feel the same about myself as ever.": 0,
+            "I have lost confidence in myself.": 1,
+            "I am disappointed in myself.": 2,
+            "I dislike myself.": 3
+          }
+        },
+        {
+          "q": "8. Self-Blame",
+          "a": {
+            "I don't blame myself for anything.": 0,
+            "I blame myself for many things.": 1,
+            "I blame myself for everything bad that happens.": 2,
+            "I feel everything bad is my fault.": 3
+          }
+        },
+        {
+          "q": "9. Suicidal Thoughts",
+          "a": {
+            "I have no thoughts of killing myself.": 0,
+            "I have thoughts of killing myself, but I would not carry them out.": 1,
+            "I would like to kill myself.": 2,
+            "I would kill myself if I had the chance.": 3
+          }
+        },
+        {
+          "q": "10. Crying",
+          "a": {
+            "I don't cry more than usual.": 0,
+            "I cry more now than I used to.": 1,
+            "I cry all the time now.": 2,
+            "I used to be able to cry, but now I can't even though I want to.": 3
+          }
+        },
+        {
+          "q": "11. Irritability",
+          "a": {
+            "I am no more irritable than usual.": 0,
+            "I am more irritable than I used to be.": 1,
+            "I am irritable all the time.": 2,
+            "I don't get irritated at all because everything seems meaningless.": 3
+          }
+        },
+        {
+          "q": "12. Interest in Other People",
+          "a": {
+            "I have not lost interest in other people.": 0,
+            "I am less interested in other people than I used to be.": 1,
+            "I have lost most of my interest in other people.": 2,
+            "I have lost all interest in other people.": 3
+          }
+        },
+        {
+          "q": "13. Decision-Making",
+          "a": {
+            "I make decisions about as well as ever.": 0,
+            "I find it more difficult to make decisions than usual.": 1,
+            "I have much greater difficulty in making decisions.": 2,
+            "I can't make decisions at all anymore.": 3
+          }
+        },
+        {
+          "q": "14. Self-Perception",
+          "a": {
+            "I don't feel that I look worse than I used to.": 0,
+            "I am worried that I look old or unattractive.": 1,
+            "I think I look ugly.": 2,
+            "I am sure that I look terrible.": 3
+          }
+        },
+        {
+          "q": "15. Work Capacity",
+          "a": {
+            "I can work about as well as before.": 0,
+            "It takes extra effort to get started at doing something.": 1,
+            "I have to push myself very hard to do anything.": 2,
+            "I can't do any work at all.": 3
+          }
+        },
+        {
+          "q": "16. Sleep",
+          "a": {
+            "I sleep as well as usual.": 0,
+            "I don't sleep as well as I used to.": 1,
+            "I wake up 1–2 hours earlier than usual and find it hard to get back to sleep.": 2,
+            "I wake up several hours earlier than usual and cannot get back to sleep.": 3
+          }
+        },
+        {
+          "q": "17. Fatigue",
+          "a": {
+            "I don't get tired more than usual.": 0,
+            "I get tired more easily than I used to.": 1,
+            "I get tired from doing almost anything.": 2,
+            "I am too tired to do anything.": 3
+          }
+        },
+        {
+          "q": "18. Appetite",
+          "a": {
+            "My appetite is no worse than usual.": 0,
+            "My appetite is not as good as it used to be.": 1,
+            "My appetite is much worse now.": 2,
+            "I have no appetite at all anymore.": 3
+          }
+        },
+        {
+          "q": "19. Weight Loss",
+          "a": {
+            "I haven't lost much weight, if any, lately.": 0,
+            "I have lost more than 1–2 kg.": 1,
+            "I have lost more than 5 kg.": 2,
+            "I have lost more than 7 kg.": 3
+          }
+        },
+        {
+          "q": "20. Health and Concerns",
+          "a": {
+            "I am no more worried about my health than usual.": 0,
+            "I am worried about physical problems such as aches or pains.": 1,
+            "I am very concerned about my health.": 2,
+            "I am so concerned about my health that I can't think about anything else.": 3
+          }
+        },
+        {
+          "q": "21. Libido",
+          "a": {
+            "There has been no recent change in my interest in sex.": 0,
+            "I am less interested in sex than I used to be.": 1,
+            "I am much less interested in sex now.": 2,
+            "I have lost interest in sex completely.": 3
+          }
+        }
+      ]
+    }
+  ]
+  

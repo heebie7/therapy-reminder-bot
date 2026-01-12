@@ -1,0 +1,17 @@
+# Secrets
+.env
+oauth-credentials.json
+token.json
+
+# Data
+registered_users.json
+sent_reminders.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OS
+.DS_Store
