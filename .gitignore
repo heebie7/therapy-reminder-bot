@@ -6,6 +6,11 @@ token.json
 # Data
 registered_users.json
 sent_reminders.json
+test_results.json
+user_timezones.json
+
+# Logs
+*.log
 
 # Python
 __pycache__/
