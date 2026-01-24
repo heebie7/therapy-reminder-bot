@@ -1,6 +1,14 @@
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, CallbackQueryHandler, MessageHandler, filters
 import json
+
+# === LOGGING ===
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 import os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -467,6 +475,7 @@ async def timezone_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return await ask_timezone(update, context)
 
 async def show_tests(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.info(f"User {update.effective_user.id} opened tests menu")
     keyboard = [[InlineKeyboardButton(f'{test_names[i]}', callback_data=f'test_{i}')] for i in tests.keys()]
     keyboard.append([InlineKeyboardButton("📊 История тестов", callback_data="test_history")])
     keyboard.append([InlineKeyboardButton("Отмена", callback_data="test_cancel")])
@@ -538,7 +547,19 @@ async def show_events(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(message, parse_mode="HTML")
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Action cancelled")
+    """Universal cancel - works from any state"""
+    logger.info(f"User {update.effective_user.id} cancelled conversation")
+    # Clear any user data from tests
+    context.user_data.clear()
+    await update.message.reply_text("Отменено.", reply_markup=get_main_menu())
+    return ConversationHandler.END
+
+async def timeout_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle conversation timeout"""
+    logger.info(f"Conversation timeout for user {update.effective_user.id if update.effective_user else 'unknown'}")
+    context.user_data.clear()
+    if update.message:
+        await update.message.reply_text("Время ожидания истекло. Начните заново.", reply_markup=get_main_menu())
     return ConversationHandler.END
 
 async def show_materials(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1071,9 +1092,15 @@ def main():
             ],
             QUESTION: [CallbackQueryHandler(question, pattern="^answer_")],
             FINISH: [CallbackQueryHandler(finish)],
+            ConversationHandler.TIMEOUT: [MessageHandler(filters.ALL, timeout_handler)],
         },
-        fallbacks=[CommandHandler("cancel", cancel), CommandHandler("start", start)],
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+            CommandHandler("start", start),
+            MessageHandler(filters.Regex("^Тесты$"), show_tests),  # Allow restart
+        ],
         per_message=False,
+        conversation_timeout=600,  # 10 minutes timeout
     )
 
     # Timezone conversation handler
@@ -1084,11 +1111,18 @@ def main():
                 MessageHandler(filters.LOCATION, handle_location),
                 MessageHandler(filters.Regex("Назад"), handle_back_to_menu),
             ],
+            ConversationHandler.TIMEOUT: [MessageHandler(filters.ALL, timeout_handler)],
         },
-        fallbacks=[CommandHandler("cancel", cancel), CommandHandler("start", start)],
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+            CommandHandler("start", start),
+        ],
         per_message=False,
+        conversation_timeout=300,  # 5 minutes timeout
     )
 
+    # Global cancel - works even outside conversations
+    application.add_handler(CommandHandler("cancel", cancel))
     application.add_handler(CommandHandler("start", start))
     application.add_handler(test_handler)
     application.add_handler(tz_handler)

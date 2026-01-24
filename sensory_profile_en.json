@@ -1,109 +1,234 @@
 [
-    {
-      "name": "Tactile Sensitivity",
-      "description": "",
-      "questions": [
-        {
-          "q": "Expresses distress during grooming (for example, fights or cries during haircutting, face washing, fingernail cutting)",
-          "a": {
-            "Always": 1,
-            "Frequently": 2,
-            "Occasionally": 3,
-            "Seldom": 4,
-            "Never": 5
-          }
-        },
-        {
-          "q": "Prefers long-sleeved clothing when it is warm or short sleeves when it is cold",
-          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
-        },
-        {
-          "q": "Reacts emotionally or aggressively to touch",
-          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
-        },
-        {
-          "q": "Avoids going barefoot, especially in sand or grass",
-          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
-        },
-        {
-          "q": "Withdraws from splashing water",
-          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
-        },
-        {
-          "q": "Has difficulty standing in line or close to other people",
-          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
-        },
-        {
-          "q": "Rubs or scratches out a spot that has been touched",
-          "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 }
+  {
+    "name": "Sensory Profile",
+    "description": "This quiz helps you understand your sensory sensitivities — both what you avoid and what you seek.",
+    "questions": [
+      {
+        "q": "How sensitive are you to loud or sudden noises (e.g., sirens, alarms, barking)?",
+        "a": {
+          "Not at all sensitive": 0,
+          "Slightly sensitive": 1,
+          "Moderately sensitive": 2,
+          "Very sensitive": 3,
+          "Extremely sensitive": 4
         }
-      ]
-    },
-    {
-      "name": "Taste/Smell Sensitivity",
-      "description": "",
-      "questions": [
-        { "q": "Avoids certain tastes or food smells", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Limits self to particular food textures/temperatures", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Picky eater, especially regarding food textures", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
-      ]
-    },
-    {
-      "name": "Movement Sensitivity",
-      "description": "",
-      "questions": [
-        { "q": "Becomes anxious or distressed when feet leave the ground", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Fears falling or heights", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Dislikes activities where the head is upside down (for example, somersaults, roughhousing)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
-      ]
-    },
-    {
-      "name": "Underresponsive/Seeks Sensation",
-      "description": "",
-      "questions": [
-        { "q": "Enjoys strange noises/seeks to make noise for noise’s sake", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Seeks all kinds of movement and this interferes with daily routines (for example, can’t sit still, fidgets)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Touches people and objects", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Becomes overly excitable during movement activity", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Doesn’t seem to notice when face or hands are messy", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Jumps from one activity to another so that it interferes with play", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Leaves clothing twisted on body", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
-      ]
-    },
-    {
-      "name": "Auditory Filtering",
-      "description": "",
-      "questions": [
-        { "q": "Is distracted or has trouble functioning if there is a lot of noise around", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Appears to not hear what you say (for example, does not 'tune-in' to what you say, appears to ignore you)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Has trouble completing tasks when the radio is on", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Can’t work with background noise (for example, fan, refrigerator)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Doesn’t respond when name is called but you know hearing is OK", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Has difficulty paying attention", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
-      ]
-    },
-    {
-      "name": "Low Energy/Weak",
-      "description": "",
-      "questions": [
-        { "q": "Seems to have weak muscles", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Tires easily, especially when standing or holding particular body position", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Can’t lift heavy objects (for example, weak in comparison to same age children)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Has a weak grasp", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Props to support self (even during activity)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Poor endurance/tires easily", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
-      ]
-    },
-    {
-      "name": "Visual/Auditory Sensitivity",
-      "description": "",
-      "questions": [
-        { "q": "Responds negatively to unexpected noises (for example, cries or hides at noise from vacuum cleaner, dog barking, hair dryer)", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Holds hands over ears to protect ears from sounds", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Watches everyone when they move around the room", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Is bothered by bright lights after others have adapted to the light", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } },
-        { "q": "Covers eyes or squints to protect eyes from light", "a": { "Always": 1, "Frequently": 2, "Occasionally": 3, "Seldom": 4, "Never": 5 } }
-      ]
-    }
-  ]
-  
+      },
+      {
+        "q": "How much does background noise (e.g., chatter, humming appliances) affect your concentration?",
+        "a": {
+          "No effect": 0,
+          "A little distracting": 1,
+          "Moderately distracting": 2,
+          "Strongly distracting, hard to focus": 3
+        }
+      },
+      {
+        "q": "Do you enjoy loud music, noisy environments, or seek out sounds?",
+        "a": {
+          "No, prefer quiet": 0,
+          "Sometimes": 1,
+          "Often, I like background noise": 2,
+          "Yes, I love loud music and lively places": 3
+        }
+      },
+      {
+        "q": "How sensitive are you to bright lights (e.g., direct sunlight, fluorescent lights)?",
+        "a": {
+          "Not at all sensitive": 0,
+          "Slightly sensitive": 1,
+          "Moderately sensitive": 2,
+          "Very sensitive, causes discomfort": 3
+        }
+      },
+      {
+        "q": "How do you feel in visually busy or cluttered environments (e.g., crowded malls, busy patterns)?",
+        "a": {
+          "Comfortable, doesn't bother me": 0,
+          "Slightly overwhelming": 1,
+          "Moderately overwhelming, prefer calm spaces": 2,
+          "Very overwhelming, need to leave or avoid": 3
+        }
+      },
+      {
+        "q": "Are you attracted to bright colors, flashing lights, or visually stimulating things?",
+        "a": {
+          "No, prefer muted/calm visuals": 0,
+          "Sometimes": 1,
+          "Often, I like colorful/dynamic visuals": 2,
+          "Yes, I seek out visual stimulation": 3
+        }
+      },
+      {
+        "q": "How sensitive are you to the texture of clothing (e.g., itchy tags, rough fabrics, seams)?",
+        "a": {
+          "Not at all": 0,
+          "Slightly, can be annoying": 1,
+          "Moderately, I avoid certain fabrics": 2,
+          "Very, it can be very distracting or painful": 3
+        }
+      },
+      {
+        "q": "How do you feel about casual touch from others (e.g., handshakes, pats on the back, casual hugs)?",
+        "a": {
+          "Comfortable, I enjoy it": 0,
+          "Neutral, depends on the person": 1,
+          "Uncomfortable, prefer to avoid": 2,
+          "Very uncomfortable, feels intrusive": 3
+        }
+      },
+      {
+        "q": "Do you enjoy touching different textures (fur, sand, slime, soft blankets)?",
+        "a": {
+          "Not particularly": 0,
+          "Sometimes": 1,
+          "Often, I like feeling textures": 2,
+          "Yes, I actively seek out textures to touch": 3
+        }
+      },
+      {
+        "q": "How sensitive are you to strong smells (e.g., perfumes, cleaning products, food odors)?",
+        "a": {
+          "Not at all": 0,
+          "Slightly": 1,
+          "Moderately, some smells bother me": 2,
+          "Very, strong smells can be overwhelming": 3
+        }
+      },
+      {
+        "q": "Do you seek out strong scents or enjoy smelling things?",
+        "a": {
+          "No, prefer neutral/no scents": 0,
+          "Sometimes": 1,
+          "Often, I enjoy fragrances": 2,
+          "Yes, I love strong scents and often smell things": 3
+        }
+      },
+      {
+        "q": "How sensitive are you to food textures (e.g., slimy, mushy, crunchy)?",
+        "a": {
+          "Not at all, I eat everything": 0,
+          "Slightly, some textures are unpleasant": 1,
+          "Moderately, I avoid certain textures": 2,
+          "Very, texture strongly affects what I can eat": 3
+        }
+      },
+      {
+        "q": "Do you seek intense flavors (very spicy, sour, salty, or strong tastes)?",
+        "a": {
+          "No, prefer mild flavors": 0,
+          "Sometimes": 1,
+          "Often, I like bold flavors": 2,
+          "Yes, I crave intense tastes": 3
+        }
+      },
+      {
+        "q": "Do you chew on things (pens, gum, nails) or seek oral stimulation when stressed or concentrating?",
+        "a": {
+          "Rarely or never": 0,
+          "Sometimes": 1,
+          "Often": 2,
+          "Almost always": 3
+        }
+      },
+      {
+        "q": "How do you feel about movement like swings, spinning, or roller coasters?",
+        "a": {
+          "Love it, seek it out": 3,
+          "Enjoy it moderately": 2,
+          "Neutral or indifferent": 1,
+          "Dislike or avoid it": 0
+        }
+      },
+      {
+        "q": "Do you experience motion sickness (in cars, boats, planes)?",
+        "a": {
+          "Never": 0,
+          "Rarely, only in extreme situations": 1,
+          "Sometimes": 2,
+          "Often or easily": 3
+        }
+      },
+      {
+        "q": "Do you feel fear or anxiety when your feet leave the ground (ladders, heights, leaning back)?",
+        "a": {
+          "No, doesn't bother me": 0,
+          "Slightly uncomfortable": 1,
+          "Moderate fear, I avoid it": 2,
+          "Strong fear, panic": 3
+        }
+      },
+      {
+        "q": "How well do you notice internal body signals like hunger, thirst, or needing the bathroom?",
+        "a": {
+          "Very well, always aware": 0,
+          "Usually notice, sometimes miss signals": 1,
+          "Often miss signals until urgent": 2,
+          "Frequently don't notice until extreme": 3
+        }
+      },
+      {
+        "q": "How well do you recognize when you're tired or need rest?",
+        "a": {
+          "Very well, I pace myself": 0,
+          "Usually notice, sometimes push too hard": 1,
+          "Often miss signs until exhausted": 2,
+          "Frequently crash from not noticing fatigue": 3
+        }
+      },
+      {
+        "q": "How sensitive are you to temperature (heat, cold, or temperature changes)?",
+        "a": {
+          "Not sensitive, adapt easily": 0,
+          "Slightly sensitive": 1,
+          "Moderately sensitive, need to adjust often": 2,
+          "Very sensitive, temperature affects my comfort a lot": 3
+        }
+      },
+      {
+        "q": "Do you often feel the need to move or fidget when trying to concentrate or relax?",
+        "a": {
+          "Rarely or never": 0,
+          "Sometimes": 1,
+          "Often": 2,
+          "Almost always": 3
+        }
+      },
+      {
+        "q": "How do you feel about deep pressure, like a weighted blanket or a firm hug?",
+        "a": {
+          "Dislike it": 0,
+          "Neutral / No strong feeling": 1,
+          "Like it mildly": 2,
+          "Love it, find it very calming": 3
+        }
+      },
+      {
+        "q": "Do you often bump into things, drop objects, or feel clumsy?",
+        "a": {
+          "Rarely or never": 0,
+          "Sometimes": 1,
+          "Often": 2,
+          "Very often": 3
+        }
+      },
+      {
+        "q": "Do you often not notice when people talk to you, or miss details around you (mess, dirt on clothes)?",
+        "a": {
+          "Rarely, I notice everything": 0,
+          "Sometimes miss things": 1,
+          "Often miss things until pointed out": 2,
+          "Very often, need louder voice or direct pointing": 3
+        }
+      },
+      {
+        "q": "How quickly do you get tired in sensory-rich environments (noisy places, crowds, many stimuli)?",
+        "a": {
+          "Don't get tired, can stay long": 0,
+          "After several hours": 1,
+          "After an hour or two": 2,
+          "Very quickly, need frequent breaks": 3
+        }
+      }
+    ]
+  }
+]
