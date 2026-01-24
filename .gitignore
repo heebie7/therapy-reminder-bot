@@ -3,11 +3,11 @@
 oauth-credentials.json
 token.json
 
-# Data
-registered_users.json
-sent_reminders.json
-test_results.json
-user_timezones.json
+# Data (root level only, data/ folder is tracked)
+/registered_users.json
+/sent_reminders.json
+/test_results.json
+/user_timezones.json
 
 # Logs
 *.log

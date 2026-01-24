@@ -18,9 +18,79 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from dotenv import load_dotenv
+import base64
+import requests
 
 # Load .env file
 load_dotenv()
+
+# === GITHUB STORAGE ===
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
+GITHUB_REPO = os.environ.get('GITHUB_REPO', 'heebie7/therapy-reminder-bot')
+DATA_FILES = ['registered_users.json', 'user_timezones.json', 'test_results.json', 'sent_reminders.json']
+
+def github_get_file(filename):
+    """Get file content from GitHub"""
+    if not GITHUB_TOKEN:
+        return None
+    try:
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/data/{filename}"
+        headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+        resp = requests.get(url, headers=headers)
+        if resp.status_code == 200:
+            content = base64.b64decode(resp.json()['content']).decode('utf-8')
+            return json.loads(content)
+    except Exception as e:
+        logger.error(f"GitHub get error for {filename}: {e}")
+    return None
+
+def github_save_file(filename, data):
+    """Save file to GitHub"""
+    if not GITHUB_TOKEN:
+        return False
+    try:
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/data/{filename}"
+        headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+
+        # Get current file SHA if exists
+        sha = None
+        resp = requests.get(url, headers=headers)
+        if resp.status_code == 200:
+            sha = resp.json()['sha']
+
+        # Prepare content
+        content = base64.b64encode(json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8')).decode('utf-8')
+
+        payload = {
+            "message": f"Update {filename}",
+            "content": content,
+        }
+        if sha:
+            payload["sha"] = sha
+
+        resp = requests.put(url, headers=headers, json=payload)
+        if resp.status_code in [200, 201]:
+            logger.info(f"Saved {filename} to GitHub")
+            return True
+        else:
+            logger.error(f"GitHub save error: {resp.status_code} {resp.text}")
+    except Exception as e:
+        logger.error(f"GitHub save error for {filename}: {e}")
+    return False
+
+def init_data_from_github():
+    """Load data files from GitHub on startup"""
+    if not GITHUB_TOKEN:
+        logger.warning("GITHUB_TOKEN not set, data persistence disabled")
+        return
+
+    for filename in DATA_FILES:
+        if not os.path.exists(filename):
+            data = github_get_file(filename)
+            if data is not None:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                logger.info(f"Loaded {filename} from GitHub")
 
 # === CONFIG ===
 CALENDAR_ID = "heebie7@gmail.com"
@@ -72,6 +142,7 @@ def load_users():
 def save_users(users):
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f, ensure_ascii=False, indent=2)
+    github_save_file(USERS_FILE, users)
 
 def register_user(username, chat_id):
     users = load_users()
@@ -116,6 +187,7 @@ def load_timezones():
 def save_timezones(tzdata):
     with open(TIMEZONES_FILE, "w", encoding="utf-8") as f:
         json.dump(tzdata, f, ensure_ascii=False, indent=2)
+    github_save_file(TIMEZONES_FILE, tzdata)
 
 def set_user_timezone(user_id, timezone_str):
     tzdata = load_timezones()
@@ -142,6 +214,7 @@ def load_test_results():
 def save_test_results(results):
     with open(TEST_RESULTS_FILE, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
+    github_save_file(TEST_RESULTS_FILE, results)
 
 def store_test_result(user_id, username, test_name, answers, score=None):
     """Store a test result for a user"""
@@ -184,6 +257,7 @@ def load_sent():
 def save_sent(sent):
     with open(SENT_FILE, "w", encoding="utf-8") as f:
         json.dump(sent, f)
+    github_save_file(SENT_FILE, sent)
 
 def mark_sent(event_id, event_time, reminder_type):
     sent = load_sent()
@@ -1067,6 +1141,10 @@ async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # === MAIN ===
 def main():
+    # Load data from GitHub on startup
+    print("Loading data from GitHub...")
+    init_data_from_github()
+
     # Initialize calendar service (will prompt for auth on first run)
     print("Initializing Google Calendar connection...")
     try:
