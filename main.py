@@ -421,7 +421,7 @@ def get_user_events(username):
 
 # === BOT HANDLERS ===
 TEST, QUESTION, FINISH = range(3)
-TZ_WAITING_LOCATION, TZ_WAITING_MANUAL = range(10, 12)
+TZ_WAITING_LOCATION, TZ_WAITING_MANUAL, TZ_WAITING_CONFIRM = range(10, 13)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -455,47 +455,90 @@ async def ask_timezone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return TZ_WAITING_LOCATION
 
-def is_russia_coordinates(lat, lon):
-    """Check if coordinates are roughly within Russia"""
-    # Russia spans roughly: lat 41-82, lon 19-180 (very approximate)
-    # This catches most of European and Asian Russia
-    return 41 <= lat <= 82 and 19 <= lon <= 180
-
 async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle received location"""
+    """Handle received location - detect timezone and ask for confirmation"""
     try:
         location = update.message.location
-
-        # For Russian locations, skip auto-detection and go to manual selection
-        # TimezoneFinder is unreliable on Russian timezone boundaries
-        if is_russia_coordinates(location.latitude, location.longitude):
-            await update.message.reply_text(
-                "Для России лучше выбрать часовой пояс вручную — автоопределение часто ошибается на границах регионов."
-            )
-            return await show_manual_tz(update, context)
-
         tz_name = timezone_from_location(location.latitude, location.longitude)
 
         if tz_name:
-            set_user_timezone(update.effective_user.id, tz_name)
+            # Store detected timezone temporarily for confirmation
+            context.user_data['detected_tz'] = tz_name
+
             try:
                 tz = ZoneInfo(tz_name)
                 now = datetime.now(tz)
-                msg = f"✅ Часовой пояс установлен: {tz_name}\nТекущее время у вас: {now.strftime('%H:%M')}"
+                time_str = now.strftime('%H:%M')
+                tz_label = next((t[1] for t in COMMON_TIMEZONES if t[0] == tz_name), tz_name)
             except:
-                msg = f"✅ Часовой пояс установлен: {tz_name}"
-        else:
-            msg = "Не удалось определить таймзону. Попробуйте ещё раз."
+                time_str = None
+                tz_label = tz_name
 
-        await update.message.reply_text(msg, reply_markup=get_main_menu())
+            # Ask for confirmation
+            keyboard = [
+                [
+                    InlineKeyboardButton("✅ Да, верно", callback_data="tz_confirm_yes"),
+                    InlineKeyboardButton("❌ Нет, выбрать вручную", callback_data="tz_confirm_no"),
+                ]
+            ]
+
+            if time_str:
+                msg = f"Определён часовой пояс: {tz_label}\nСейчас у вас {time_str}?\n\nЕсли время неверное — выберите пояс вручную."
+            else:
+                msg = f"Определён часовой пояс: {tz_label}\n\nВсё верно?"
+
+            await update.message.reply_text(msg, reply_markup=InlineKeyboardMarkup(keyboard))
+            return TZ_WAITING_CONFIRM
+        else:
+            await update.message.reply_text(
+                "Не удалось определить таймзону автоматически. Выберите вручную:"
+            )
+            return await show_manual_tz(update, context)
+
     except Exception as e:
         print(f"Error in handle_location: {e}")
         await update.message.reply_text("Произошла ошибка. Попробуйте ещё раз.", reply_markup=get_main_menu())
+        return ConversationHandler.END
 
-    return ConversationHandler.END
 
-async def show_manual_tz(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show manual timezone selection"""
+async def handle_tz_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle timezone confirmation callback"""
+    query = update.callback_query
+    await query.answer()
+
+    try:
+        await query.message.delete()
+    except:
+        pass
+
+    if query.data == "tz_confirm_yes":
+        # User confirmed - save the detected timezone
+        tz_name = context.user_data.get('detected_tz')
+        if tz_name:
+            set_user_timezone(update.effective_user.id, tz_name)
+            tz_label = next((t[1] for t in COMMON_TIMEZONES if t[0] == tz_name), tz_name)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"✅ Часовой пояс установлен: {tz_label}",
+                reply_markup=get_main_menu()
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Ошибка. Попробуйте ещё раз.",
+                reply_markup=get_main_menu()
+            )
+        return ConversationHandler.END
+    else:
+        # User wants manual selection
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Выберите ваш часовой пояс:"
+        )
+        return await show_manual_tz_from_callback(update, context)
+
+def build_tz_keyboard():
+    """Build timezone selection keyboard"""
     keyboard = []
     for i in range(0, len(COMMON_TIMEZONES), 2):
         row = []
@@ -510,12 +553,26 @@ async def show_manual_tz(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ))
         keyboard.append(row)
     keyboard.append([InlineKeyboardButton("Отмена", callback_data="tz_cancel")])
+    return InlineKeyboardMarkup(keyboard)
 
+
+async def show_manual_tz(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show manual timezone selection (from message context)"""
     await update.message.reply_text(
         "Выберите ваш часовой пояс:",
-        reply_markup=InlineKeyboardMarkup(keyboard)
+        reply_markup=build_tz_keyboard()
     )
     return TZ_WAITING_MANUAL
+
+async def show_manual_tz_from_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show manual timezone selection (from callback context)"""
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Выберите ваш часовой пояс:",
+        reply_markup=build_tz_keyboard()
+    )
+    return TZ_WAITING_MANUAL
+
 
 async def handle_manual_tz_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle 'Select manually' button"""
@@ -525,6 +582,12 @@ async def handle_tz_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
     """Handle timezone selection callback"""
     query = update.callback_query
     await query.answer()
+
+    # Remove inline keyboard
+    try:
+        await query.message.delete()
+    except:
+        pass
 
     if query.data == "tz_cancel":
         await query.message.reply_text("Выбор отменён.", reply_markup=get_main_menu())
@@ -537,14 +600,16 @@ async def handle_tz_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
         tz = ZoneInfo(tz_name)
         now = datetime.now(tz)
         tz_label = next((t[1] for t in COMMON_TIMEZONES if t[0] == tz_name), tz_name)
-        await query.message.reply_text(
-            f"✅ Часовой пояс установлен: {tz_label}\n"
-            f"Текущее время у вас: {now.strftime('%H:%M')}",
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"✅ Часовой пояс установлен: {tz_label}\n"
+                 f"Текущее время у вас: {now.strftime('%H:%M')}",
             reply_markup=get_main_menu()
         )
     except:
-        await query.message.reply_text(
-            f"✅ Часовой пояс установлен: {tz_name}",
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"✅ Часовой пояс установлен: {tz_name}",
             reply_markup=get_main_menu()
         )
 
@@ -1203,6 +1268,12 @@ def main():
             TZ_WAITING_LOCATION: [
                 MessageHandler(filters.LOCATION, handle_location),
                 MessageHandler(filters.Regex("Назад"), handle_back_to_menu),
+            ],
+            TZ_WAITING_CONFIRM: [
+                CallbackQueryHandler(handle_tz_confirm, pattern="^tz_confirm_"),
+            ],
+            TZ_WAITING_MANUAL: [
+                CallbackQueryHandler(handle_tz_callback, pattern="^tz_"),
             ],
             ConversationHandler.TIMEOUT: [MessageHandler(filters.ALL, timeout_handler)],
         },
