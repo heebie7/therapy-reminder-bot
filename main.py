@@ -531,10 +531,6 @@ async def handle_tz_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
     else:
         # User wants manual selection
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Выберите ваш часовой пояс:"
-        )
         return await show_manual_tz_from_callback(update, context)
 
 def build_tz_keyboard():
