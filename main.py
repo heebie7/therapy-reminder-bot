@@ -526,6 +526,12 @@ async def handle_tz_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
     query = update.callback_query
     await query.answer()
 
+    # Remove inline keyboard
+    try:
+        await query.message.delete()
+    except:
+        pass
+
     if query.data == "tz_cancel":
         await query.message.reply_text("Выбор отменён.", reply_markup=get_main_menu())
         return ConversationHandler.END
@@ -537,14 +543,16 @@ async def handle_tz_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
         tz = ZoneInfo(tz_name)
         now = datetime.now(tz)
         tz_label = next((t[1] for t in COMMON_TIMEZONES if t[0] == tz_name), tz_name)
-        await query.message.reply_text(
-            f"✅ Часовой пояс установлен: {tz_label}\n"
-            f"Текущее время у вас: {now.strftime('%H:%M')}",
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"✅ Часовой пояс установлен: {tz_label}\n"
+                 f"Текущее время у вас: {now.strftime('%H:%M')}",
             reply_markup=get_main_menu()
         )
     except:
-        await query.message.reply_text(
-            f"✅ Часовой пояс установлен: {tz_name}",
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"✅ Часовой пояс установлен: {tz_name}",
             reply_markup=get_main_menu()
         )
 
@@ -1203,6 +1211,9 @@ def main():
             TZ_WAITING_LOCATION: [
                 MessageHandler(filters.LOCATION, handle_location),
                 MessageHandler(filters.Regex("Назад"), handle_back_to_menu),
+            ],
+            TZ_WAITING_MANUAL: [
+                CallbackQueryHandler(handle_tz_callback, pattern="^tz_"),
             ],
             ConversationHandler.TIMEOUT: [MessageHandler(filters.ALL, timeout_handler)],
         },
