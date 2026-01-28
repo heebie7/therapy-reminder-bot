@@ -455,10 +455,25 @@ async def ask_timezone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return TZ_WAITING_LOCATION
 
+def is_russia_coordinates(lat, lon):
+    """Check if coordinates are roughly within Russia"""
+    # Russia spans roughly: lat 41-82, lon 19-180 (very approximate)
+    # This catches most of European and Asian Russia
+    return 41 <= lat <= 82 and 19 <= lon <= 180
+
 async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle received location"""
     try:
         location = update.message.location
+
+        # For Russian locations, skip auto-detection and go to manual selection
+        # TimezoneFinder is unreliable on Russian timezone boundaries
+        if is_russia_coordinates(location.latitude, location.longitude):
+            await update.message.reply_text(
+                "Для России лучше выбрать часовой пояс вручную — автоопределение часто ошибается на границах регионов."
+            )
+            return await show_manual_tz(update, context)
+
         tz_name = timezone_from_location(location.latitude, location.longitude)
 
         if tz_name:
