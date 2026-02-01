@@ -727,13 +727,28 @@ async def handle_location_global(update: Update, context: ContextTypes.DEFAULT_T
             try:
                 tz = ZoneInfo(tz_name)
                 now = datetime.now(tz)
-                msg = f"✅ Часовой пояс установлен: {tz_name}\nТекущее время у вас: {now.strftime('%H:%M')}\n\nЕсли время неверное — напишите /start и выберите вручную."
+                tz_label = next((t[1] for t in COMMON_TIMEZONES if t[0] == tz_name), tz_name)
+                msg = f"✅ Часовой пояс установлен: {tz_label}\nТекущее время у вас: {now.strftime('%H:%M')}"
             except:
                 msg = f"✅ Часовой пояс установлен: {tz_name}"
-        else:
-            msg = "Не удалось определить таймзону. Попробуйте выбрать вручную."
 
-        await update.message.reply_text(msg, reply_markup=get_main_menu())
+            await update.message.reply_text(msg, reply_markup=get_main_menu())
+            # Add button to change if wrong
+            keyboard = [[InlineKeyboardButton("🔧 Выбрать вручную", callback_data="tz_method_manual")]]
+            await update.message.reply_text(
+                "Если время неверное:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        else:
+            await update.message.reply_text(
+                "Не удалось определить таймзону.",
+                reply_markup=get_main_menu()
+            )
+            keyboard = [[InlineKeyboardButton("🔧 Выбрать вручную", callback_data="tz_method_manual")]]
+            await update.message.reply_text(
+                "Выберите часовой пояс вручную:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
     except Exception as e:
         logger.error(f"Error in handle_location_global: {e}")
         await update.message.reply_text("Произошла ошибка. Попробуйте ещё раз.", reply_markup=get_main_menu())
