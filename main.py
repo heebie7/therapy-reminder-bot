@@ -390,7 +390,7 @@ async def check_and_send_reminders(context):
 def get_main_menu():
     keyboard = [
         [KeyboardButton("Тесты"), KeyboardButton("Мои встречи")],
-        [KeyboardButton("📚 Материалы"), KeyboardButton("🕐 Часовой пояс")]
+        [KeyboardButton("📚 Материалы")]
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
@@ -435,11 +435,33 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         welcome = "Добро пожаловать! Вы зарегистрированы для получения напоминаний о встречах.\n\n"
         welcome += "Для корректного отображения времени встреч, пожалуйста, укажите ваш часовой пояс."
         await update.message.reply_text(welcome, reply_markup=get_main_menu())
-        # Prompt for timezone
-        await ask_timezone(update, context)
+        # Show timezone method selection
+        keyboard = [
+            [InlineKeyboardButton("📍 По геолокации", callback_data="tz_method_location")],
+            [InlineKeyboardButton("🔧 Выбрать вручную", callback_data="tz_method_manual")],
+        ]
+        await update.message.reply_text(
+            "Как вы хотите указать часовой пояс?",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
     else:
-        welcome = "Добро пожаловать! Вы зарегистрированы для получения напоминаний о встречах."
+        # Show current timezone and option to change
+        try:
+            tz = ZoneInfo(user_tz)
+            now = datetime.now(tz)
+            tz_label = next((t[1] for t in COMMON_TIMEZONES if t[0] == user_tz), user_tz)
+            tz_info = f"\n\nВаш часовой пояс: {tz_label}\nТекущее время: {now.strftime('%H:%M')}"
+        except:
+            tz_info = f"\n\nВаш часовой пояс: {user_tz}"
+
+        welcome = "Добро пожаловать! Вы зарегистрированы для получения напоминаний о встречах." + tz_info
         await update.message.reply_text(welcome, reply_markup=get_main_menu())
+        # Option to change timezone
+        keyboard = [[InlineKeyboardButton("🔄 Изменить часовой пояс", callback_data="tz_method_change")]]
+        await update.message.reply_text(
+            "Если хотите изменить часовой пояс:",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
     return ConversationHandler.END
 
 async def ask_timezone(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -624,6 +646,98 @@ async def timezone_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle timezone menu button"""
     return await ask_timezone(update, context)
 
+async def handle_tz_method_callback_global(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle timezone method selection - global version for outside conversation"""
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "tz_method_cancel":
+        await query.message.reply_text("Отменено.", reply_markup=get_main_menu())
+        return
+
+    if query.data == "tz_method_change":
+        # Show method selection for changing timezone
+        keyboard = [
+            [InlineKeyboardButton("📍 По геолокации", callback_data="tz_method_location")],
+            [InlineKeyboardButton("🔧 Выбрать вручную", callback_data="tz_method_manual")],
+            [InlineKeyboardButton("⬅️ Отмена", callback_data="tz_method_cancel")]
+        ]
+        await query.message.edit_text(
+            "Как вы хотите указать часовой пояс?",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+        return
+
+    if query.data == "tz_method_manual":
+        # Show manual selection
+        await query.message.edit_text(
+            "Выберите ваш часовой пояс:",
+            reply_markup=build_tz_keyboard()
+        )
+        return
+
+    if query.data == "tz_method_location":
+        # Request location
+        keyboard = [
+            [KeyboardButton("📍 Отправить геолокацию", request_location=True)],
+            [KeyboardButton("⬅️ Назад")]
+        ]
+        markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+        await query.message.reply_text(
+            "Нажмите кнопку ниже, чтобы отправить геолокацию.",
+            reply_markup=markup
+        )
+        return
+
+async def handle_tz_callback_global(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle timezone selection - global version for outside conversation"""
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "tz_cancel":
+        await query.message.reply_text("Выбор отменён.", reply_markup=get_main_menu())
+        return
+
+    tz_name = query.data.replace("tz_", "")
+    set_user_timezone(update.effective_user.id, tz_name)
+
+    try:
+        tz = ZoneInfo(tz_name)
+        now = datetime.now(tz)
+        tz_label = next((t[1] for t in COMMON_TIMEZONES if t[0] == tz_name), tz_name)
+        await query.message.reply_text(
+            f"✅ Часовой пояс установлен: {tz_label}\n"
+            f"Текущее время у вас: {now.strftime('%H:%M')}",
+            reply_markup=get_main_menu()
+        )
+    except:
+        await query.message.reply_text(
+            f"✅ Часовой пояс установлен: {tz_name}",
+            reply_markup=get_main_menu()
+        )
+
+async def handle_location_global(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle location - global version for outside conversation"""
+    try:
+        location = update.message.location
+        tz_name = timezone_from_location(location.latitude, location.longitude)
+
+        if tz_name:
+            set_user_timezone(update.effective_user.id, tz_name)
+            try:
+                tz = ZoneInfo(tz_name)
+                now = datetime.now(tz)
+                msg = f"✅ Часовой пояс установлен: {tz_name}\nТекущее время у вас: {now.strftime('%H:%M')}\n\nЕсли время неверное — напишите /start и выберите вручную."
+            except:
+                msg = f"✅ Часовой пояс установлен: {tz_name}"
+        else:
+            msg = "Не удалось определить таймзону. Попробуйте выбрать вручную."
+
+        await update.message.reply_text(msg, reply_markup=get_main_menu())
+    except Exception as e:
+        logger.error(f"Error in handle_location_global: {e}")
+        await update.message.reply_text("Произошла ошибка. Попробуйте ещё раз.", reply_markup=get_main_menu())
+
 async def show_tests(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"User {update.effective_user.id} opened tests menu")
     keyboard = [[InlineKeyboardButton(f'{test_names[i]}', callback_data=f'test_{i}')] for i in tests.keys()]
@@ -687,7 +801,7 @@ async def show_events(update: Update, context: ContextTypes.DEFAULT_TYPE):
         tz_label = next((t[1] for t in COMMON_TIMEZONES if t[0] == user_tz_name), user_tz_name)
         message += f"\n⏰ Время в вашем поясе: {tz_label}\n"
     else:
-        message += "\n⚠️ Часовой пояс не установлен. Нажмите «🕐 Часовой пояс» для настройки.\n"
+        message += "\n⚠️ Часовой пояс не установлен.\n"
 
     message += "\nСсылки для подключения:\n"
     message += '<a href="https://us06web.zoom.us/j/8144618404?pwd=UENCWHRIWVcwSUtVV0hxUUNtMHlzdz09">Zoom</a>\n'
@@ -695,6 +809,13 @@ async def show_events(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message += "Реквизиты:\n<blockquote expandable>Тинькофф: +79879494485\nPayPal: ann.alasheeva@gmail.com\nGeorgian: GE77CD0360000044863324</blockquote>"
 
     await update.message.reply_text(message, parse_mode="HTML")
+
+    # Add button to change timezone
+    keyboard = [[InlineKeyboardButton("🔄 Изменить часовой пояс", callback_data="tz_method_change")]]
+    await update.message.reply_text(
+        "Время отображается неверно?",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Universal cancel - works from any state"""
@@ -1286,6 +1407,11 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(test_handler)
     application.add_handler(tz_handler)
+    # Global timezone callbacks - for buttons shown outside conversation (e.g., after /start)
+    application.add_handler(CallbackQueryHandler(handle_tz_method_callback_global, pattern="^tz_method_"))
+    application.add_handler(CallbackQueryHandler(handle_tz_callback_global, pattern="^tz_"))
+    # Global location handler - for location sent outside conversation
+    application.add_handler(MessageHandler(filters.LOCATION, handle_location_global))
     application.add_handler(MessageHandler(filters.Regex("^Мои встречи$"), show_events))
     application.add_handler(MessageHandler(filters.Regex("^📚 Материалы$"), show_materials))
     application.add_handler(MessageHandler(filters.Regex("Назад"), handle_back_to_menu))
