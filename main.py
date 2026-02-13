@@ -2,6 +2,7 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, CallbackQueryHandler, MessageHandler, filters
 import json
+import asyncio
 
 # === LOGGING ===
 logging.basicConfig(
@@ -853,6 +854,67 @@ async def show_materials(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = '📚 <a href="https://drive.google.com/drive/folders/1WjQWCBeefSIhAENrOJYWX3KyDua6hmYI">Здесь</a> лежат книги Unmasking Autism и мои материалы про нейроотличное выгорание и восстановление.'
     await update.message.reply_text(message, parse_mode="HTML")
 
+# === BROADCAST FOR ADMIN ===
+ADMIN_ID = 5999980147
+BROADCAST_WAITING_MESSAGE = 42
+
+async def broadcast_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Start broadcast - admin only"""
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("❌ Эта команда доступна только администратору.")
+        return ConversationHandler.END
+
+    await update.message.reply_text(
+        "📨 Введите сообщение для рассылки всем пользователям:\n\n"
+        "(Команда /cancel для отмены)"
+    )
+    return BROADCAST_WAITING_MESSAGE
+
+async def broadcast_send(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Send broadcast message to all users"""
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("❌ Эта команда доступна только администратору.")
+        return ConversationHandler.END
+
+    message_text = update.message.text
+
+    # Load users
+    try:
+        with open('data/registered_users.json', 'r', encoding='utf-8') as f:
+            users = json.load(f)
+    except FileNotFoundError:
+        await update.message.reply_text("❌ Файл с пользователями не найден.")
+        return ConversationHandler.END
+
+    if not users:
+        await update.message.reply_text("❌ Нет пользователей в базе.")
+        return ConversationHandler.END
+
+    # Send confirmation
+    await update.message.reply_text(
+        f"⏳ Рассылаю сообщение {len(users)} пользователям...\n\n"
+        f"Текст:\n{message_text}"
+    )
+
+    success_count = 0
+    failed_count = 0
+
+    for username, chat_id in users.items():
+        try:
+            await context.bot.send_message(chat_id=chat_id, text=message_text)
+            success_count += 1
+            await asyncio.sleep(0.05)  # Small delay to avoid rate limiting
+        except Exception as e:
+            logger.error(f"Failed to send to {username} ({chat_id}): {e}")
+            failed_count += 1
+
+    result_message = f"✅ Успешно отправлено: {success_count}/{len(users)}"
+    if failed_count > 0:
+        result_message += f"\n❌ Ошибок: {failed_count}"
+
+    await update.message.reply_text(result_message, reply_markup=get_main_menu())
+    return ConversationHandler.END
+
 async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -1417,9 +1479,26 @@ def main():
         conversation_timeout=300,  # 5 minutes timeout
     )
 
+    # Broadcast conversation handler (admin only)
+    broadcast_handler = ConversationHandler(
+        entry_points=[CommandHandler("broadcast", broadcast_start)],
+        states={
+            BROADCAST_WAITING_MESSAGE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, broadcast_send),
+            ],
+        },
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+            CommandHandler("start", start),
+        ],
+        per_message=False,
+        conversation_timeout=300,
+    )
+
     # Global cancel - works even outside conversations
     application.add_handler(CommandHandler("cancel", cancel))
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(broadcast_handler)
     application.add_handler(test_handler)
     application.add_handler(tz_handler)
     # Global timezone callbacks - for buttons shown outside conversation (e.g., after /start)
