@@ -371,6 +371,9 @@ async def check_and_send_reminders(context):
             # Format date/time nicely
             try:
                 start_dt = datetime.fromisoformat(event_start.replace('Z', '+00:00'))
+                user_tz_name = get_user_timezone(chat_id)
+                if user_tz_name:
+                    start_dt = start_dt.astimezone(ZoneInfo(user_tz_name))
                 if minutes_before > 60 * 24:  # больше суток — показываем дату
                     time_str = start_dt.strftime('%d.%m в %H:%M')
                 else:
