@@ -118,6 +118,8 @@ test_names = {
     "beckRu": "Шкала депрессии Бека",
     "sensoryProfileRu": "Сенсорный профиль",
     "mqRu": "Опросник монотропизма (MQ)",
+    "raadsRRu": "RAADS-R",
+    "raads14Ru": "RAADS-14 Screen",
     # English versions (hidden for now):
     # "beckEn": "Beck Depression Inventory (English)",
     # "sensoryProfile": "Sensory Profile",
@@ -129,6 +131,10 @@ with open("sensory_profile_ru.json", "r", encoding="utf-8") as f:
     tests["sensoryProfileRu"] = json.load(f)
 with open("mq_ru.json", "r", encoding="utf-8") as f:
     tests["mqRu"] = json.load(f)
+with open("raads_r_ru.json", "r", encoding="utf-8") as f:
+    tests["raadsRRu"] = json.load(f)
+with open("raads_14_ru.json", "r", encoding="utf-8") as f:
+    tests["raads14Ru"] = json.load(f)
 # English versions (hidden for now):
 # with open("beck_en.json", "r", encoding="utf-8") as f:
 #     tests["beckEn"] = json.load(f)
@@ -967,6 +973,10 @@ async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 message = f"📅 {date}\n\n" + get_sensory_profile_results(answers, is_russian)
             elif test_name == 'mqRu':
                 message = f"📅 {date}\n\n" + get_mq_results(answers)
+            elif test_name == 'raadsRRu':
+                message = f"📅 {date}\n\n" + get_raads_r_results(answers)
+            elif test_name == 'raads14Ru':
+                message = f"📅 {date}\n\n" + get_raads_14_results(answers)
             else:
                 test_label = test_names.get(test_name, test_name)
                 message = f"📅 {date} — {test_label}\n\nСумма баллов: {entry.get('score', 'N/A')}"
@@ -1064,6 +1074,21 @@ async def question(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     test_name=test_name,
                     answers=context.user_data['answers'],
                     score=mq_avg
+                )
+            elif test_name in ('raadsRRu', 'raads14Ru'):
+                if test_name == 'raadsRRu':
+                    message = get_raads_r_results(context.user_data['answers'])
+                else:
+                    message = get_raads_14_results(context.user_data['answers'])
+                # Total score for history display
+                scores = context.user_data['answers'].get('0', {})
+                total = sum(int(s) for s in scores.values())
+                store_test_result(
+                    user_id=update.effective_user.id,
+                    username=update.effective_user.username,
+                    test_name=test_name,
+                    answers=context.user_data['answers'],
+                    score=total
                 )
             else:
                 message = "Тест завершен\n\nРезультаты:\n"
@@ -1496,6 +1521,140 @@ def get_mq_results(answers):
 
     result += "⚠️ Это не диагностический инструмент. "
     result += "Результат описывает стиль внимания, а не наличие/отсутствие диагноза."
+
+    return result
+
+
+# === RAADS-R SCORING ===
+# Ritvo et al. (2011). N=779.
+RAADS_R_NORM_MEAN = 25.95
+RAADS_R_NORM_SD = 16.04
+RAADS_R_ASD_MEAN = 133.81
+RAADS_R_ASD_SD = 37.72
+
+# Subscale definitions: 1-indexed question numbers
+RAADS_R_SUBSCALES = {
+    "Social Relatedness": {
+        "items": [1, 3, 5, 6, 8, 11, 12, 14, 17, 18, 20, 21, 22, 23, 25, 26,
+                  28, 31, 37, 38, 39, 43, 44, 45, 47, 48, 53, 54, 55, 60, 61,
+                  64, 68, 69, 72, 76, 77, 79, 80],
+        "max": 117,
+        "cutoff": 31,
+        "label_ru": "Социальные отношения",
+    },
+    "Circumscribed Interests": {
+        "items": [9, 13, 24, 30, 32, 40, 41, 50, 52, 56, 63, 70, 75, 78],
+        "max": 42,
+        "cutoff": 15,
+        "label_ru": "Ограниченные интересы",
+    },
+    "Language": {
+        "items": [2, 7, 15, 27, 35, 58, 66],
+        "max": 21,
+        "cutoff": 4,
+        "label_ru": "Язык",
+    },
+    "Sensory Motor": {
+        "items": [4, 10, 16, 19, 29, 33, 34, 36, 42, 46, 49, 51, 57, 59,
+                  62, 65, 67, 71, 73, 74],
+        "max": 60,
+        "cutoff": 16,
+        "label_ru": "Сенсомоторная сфера",
+    },
+}
+
+def get_raads_r_results(answers):
+    """Generate RAADS-R results with subscales and percentiles."""
+    scores = answers.get('0', {})
+    if not scores:
+        return "Недостаточно ответов для подсчёта результата."
+
+    total = sum(int(s) for s in scores.values())
+
+    # Percentiles
+    norm_pct = _normal_cdf(total, RAADS_R_NORM_MEAN, RAADS_R_NORM_SD) * 100
+    asd_pct = _normal_cdf(total, RAADS_R_ASD_MEAN, RAADS_R_ASD_SD) * 100
+
+    result = "📊 Результаты: RAADS-R\n\n"
+    result += f"Общий балл: {total} из 240\n"
+    result += f"Ответов: {len(scores)} из 80\n\n"
+
+    # Interpretation
+    if total >= 65:
+        result += "🔴 Результат на уровне или выше порога (65), что согласуется с аутистическим спектром.\n\n"
+    else:
+        result += "🟢 Результат ниже порога (65).\n\n"
+
+    # Subscales
+    result += "Субшкалы:\n"
+    for name, info in RAADS_R_SUBSCALES.items():
+        # items are 1-indexed, scores dict keys are 0-indexed strings
+        sub_total = sum(int(scores.get(str(i - 1), 0)) for i in info["items"])
+        above = "⬆" if sub_total >= info["cutoff"] else ""
+        result += f"• {info['label_ru']}: {sub_total}/{info['max']} (порог: {info['cutoff']}) {above}\n"
+
+    result += f"\nПерцентили:\n"
+    result += f"• Выше {norm_pct:.0f}% нормативной выборки (M={RAADS_R_NORM_MEAN}, SD={RAADS_R_NORM_SD})\n"
+    result += f"• Перцентиль в аутичной выборке: {asd_pct:.0f}% (M={RAADS_R_ASD_MEAN}, SD={RAADS_R_ASD_SD})\n"
+    result += "(Ritvo et al., 2011, N=779)\n\n"
+
+    result += "⚠️ Это не диагностический инструмент. "
+    result += "Результат не заменяет профессиональную оценку."
+
+    return result
+
+
+# === RAADS-14 SCORING ===
+# Eriksson et al. (2013).
+RAADS_14_SUBSCALES = {
+    "Mentalizing Deficits": {
+        "items": [1, 4, 9, 11, 12, 13, 14],
+        "label_ru": "Трудности ментализации",
+    },
+    "Sensory Reactivity": {
+        "items": [2, 7, 10],
+        "label_ru": "Сенсорная реактивность",
+    },
+    "Social Anxiety": {
+        "items": [3, 5, 6, 8],
+        "label_ru": "Социальная тревожность",
+    },
+}
+
+def get_raads_14_results(answers):
+    """Generate RAADS-14 results with subscales."""
+    scores = answers.get('0', {})
+    if not scores:
+        return "Недостаточно ответов для подсчёта результата."
+
+    total = sum(int(s) for s in scores.values())
+
+    result = "📊 Результаты: RAADS-14 Screen\n\n"
+    result += f"Общий балл: {total} из 42\n"
+    result += f"Ответов: {len(scores)} из 14\n\n"
+
+    # Interpretation
+    if total >= 14:
+        result += "🔴 Результат на уровне или выше порога (14) — положительный скрининг.\n"
+        if total >= 25:
+            result += "Балл значительно выше порога, что типично для людей с аутизмом "
+            result += "(медиана аутичной выборки: 32).\n\n"
+        else:
+            result += "Для сравнения: медиана СДВГ-выборки 15, аутичной — 32.\n\n"
+    else:
+        result += "🟢 Результат ниже порога (14).\n\n"
+
+    # Subscales
+    result += "Субшкалы:\n"
+    for name, info in RAADS_14_SUBSCALES.items():
+        sub_total = sum(int(scores.get(str(i - 1), 0)) for i in info["items"])
+        sub_max = len(info["items"]) * 3
+        result += f"• {info['label_ru']}: {sub_total}/{sub_max}\n"
+
+    result += "\n(Eriksson et al., 2013)\n\n"
+
+    result += "⚠️ Это скрининговый инструмент, не диагностический. "
+    result += "Результат не заменяет профессиональную оценку."
 
     return result
 
