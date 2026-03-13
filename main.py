@@ -3,6 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, CallbackQueryHandler, MessageHandler, filters
 import json
 import asyncio
+import math
 
 # === LOGGING ===
 logging.basicConfig(
@@ -116,6 +117,7 @@ tests = {}
 test_names = {
     "beckRu": "Шкала депрессии Бека",
     "sensoryProfileRu": "Сенсорный профиль",
+    "mqRu": "Опросник монотропизма (MQ)",
     # English versions (hidden for now):
     # "beckEn": "Beck Depression Inventory (English)",
     # "sensoryProfile": "Sensory Profile",
@@ -125,6 +127,8 @@ with open("beck_ru.json", "r", encoding="utf-8") as f:
     tests["beckRu"] = json.load(f)
 with open("sensory_profile_ru.json", "r", encoding="utf-8") as f:
     tests["sensoryProfileRu"] = json.load(f)
+with open("mq_ru.json", "r", encoding="utf-8") as f:
+    tests["mqRu"] = json.load(f)
 # English versions (hidden for now):
 # with open("beck_en.json", "r", encoding="utf-8") as f:
 #     tests["beckEn"] = json.load(f)
@@ -961,6 +965,8 @@ async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if test_name in ['sensoryProfile', 'sensoryProfileRu']:
                 is_russian = test_name == 'sensoryProfileRu'
                 message = f"📅 {date}\n\n" + get_sensory_profile_results(answers, is_russian)
+            elif test_name == 'mqRu':
+                message = f"📅 {date}\n\n" + get_mq_results(answers)
             else:
                 test_label = test_names.get(test_name, test_name)
                 message = f"📅 {date} — {test_label}\n\nСумма баллов: {entry.get('score', 'N/A')}"
@@ -1045,6 +1051,19 @@ async def question(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     test_name=test_name,
                     answers=context.user_data['answers'],
                     score=None  # Sensory profile doesn't have a single score
+                )
+            elif test_name == 'mqRu':
+                message = get_mq_results(context.user_data['answers'])
+                # Calculate average for history display
+                scores = context.user_data['answers'].get('0', {})
+                valid_scores = [int(s) for s in scores.values() if int(s) > 0]
+                mq_avg = round(sum(valid_scores) / len(valid_scores), 2) if valid_scores else 0
+                store_test_result(
+                    user_id=update.effective_user.id,
+                    username=update.effective_user.username,
+                    test_name=test_name,
+                    answers=context.user_data['answers'],
+                    score=mq_avg
                 )
             else:
                 message = "Тест завершен\n\nРезультаты:\n"
@@ -1412,6 +1431,74 @@ def get_sensory_profile_results(answers, is_russian=False):
         result += "\n💡 Based on Winnie Dunn model, 101autism.com, firststeps.nz"
 
     return result
+
+
+# === MQ (Monotropism Questionnaire) SCORING ===
+# Garau et al. (2023). N=1110.
+MQ_AUTISTIC_MEAN = 4.15
+MQ_AUTISTIC_SD = 0.347
+MQ_ALLISTIC_MEAN = 3.19
+MQ_ALLISTIC_SD = 0.578
+
+def _normal_cdf(x, mean, sd):
+    """CDF of normal distribution using error function."""
+    return 0.5 * (1 + math.erf((x - mean) / (sd * math.sqrt(2))))
+
+def get_mq_results(answers):
+    """Generate MQ results with percentile comparison.
+
+    answers: dict like {'0': {question_idx_str: score_int, ...}}
+    Score 0 = N/A (excluded from average). Scores 1-5 = valid answers.
+    Reverse scoring is already baked into mq_ru.json.
+    """
+    scores = answers.get('0', {})
+
+    total = 0
+    valid = 0
+    for _idx, score in scores.items():
+        s = int(score)
+        if s > 0:  # N/A = 0, excluded
+            total += s
+            valid += 1
+
+    if valid == 0:
+        return "Недостаточно ответов для подсчёта результата."
+
+    avg = total / valid
+
+    # Percentile calculation
+    auto_pct = _normal_cdf(avg, MQ_AUTISTIC_MEAN, MQ_AUTISTIC_SD) * 100
+    allo_pct = _normal_cdf(avg, MQ_ALLISTIC_MEAN, MQ_ALLISTIC_SD) * 100
+
+    result = "📊 Результаты: Опросник монотропизма (MQ)\n\n"
+    result += f"Средний балл: {avg:.2f} из 5.00\n"
+    result += f"Учтено ответов: {valid} из 47\n\n"
+
+    # Interpretation
+    if avg >= 3.91:
+        result += "🔴 Результат указывает на выраженную монотропность.\n"
+        result += "Это означает сильный монотропный стиль внимания — "
+        result += "глубокая фокусировка, трудности с переключением, "
+        result += "интенсивные интересы.\n\n"
+    elif avg >= 3.19:
+        result += "🟡 Результат в промежуточной зоне — есть монотропные черты.\n\n"
+    else:
+        result += "🟢 Результат ниже среднего по монотропности.\n\n"
+
+    result += f"Ваш результат выше, чем у {auto_pct:.0f}% аутичных людей "
+    result += f"и {allo_pct:.0f}% не-аутичных людей "
+    result += "(по данным Garau et al., 2023, N=1110).\n\n"
+
+    # Reference ranges
+    result += "Референсные значения:\n"
+    result += f"• Аутичная выборка: M={MQ_AUTISTIC_MEAN}, SD={MQ_AUTISTIC_SD}\n"
+    result += f"• Не-аутичная выборка: M={MQ_ALLISTIC_MEAN}, SD={MQ_ALLISTIC_SD}\n\n"
+
+    result += "⚠️ Это не диагностический инструмент. "
+    result += "Результат описывает стиль внимания, а не наличие/отсутствие диагноза."
+
+    return result
+
 
 async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     pass
