@@ -118,8 +118,8 @@ test_names = {
     "beckRu": "Шкала депрессии Бека",
     "sensoryProfileRu": "Сенсорный профиль",
     "mqRu": "Опросник монотропизма (MQ)",
-    "raadsRRu": "RAADS-R",
-    "raads14Ru": "RAADS-14 Screen",
+    "raadsRRu": "RAADS long (80)",
+    "raads14Ru": "RAADS short (14)",
     # English versions (hidden for now):
     # "beckEn": "Beck Depression Inventory (English)",
     # "sensoryProfile": "Sensory Profile",
