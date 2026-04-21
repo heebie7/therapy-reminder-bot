@@ -29,7 +29,7 @@ load_dotenv()
 # === GITHUB STORAGE ===
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
 GITHUB_REPO = os.environ.get('GITHUB_REPO', 'heebie7/therapy-reminder-bot')
-DATA_FILES = ['registered_users.json', 'user_timezones.json', 'test_results.json', 'sent_reminders.json']
+DATA_FILES = ['registered_users.json', 'user_timezones.json', 'test_results.json', 'sent_reminders.json', 'user_notifications.json']
 
 def github_get_file(filename):
     """Get file content from GitHub"""
@@ -256,6 +256,29 @@ def get_user_test_history(user_id):
     results = load_test_results()
     return results.get(str(user_id), {}).get("tests", [])
 
+# === NOTIFICATIONS SETTINGS ===
+NOTIFICATIONS_FILE = "user_notifications.json"
+
+def load_notifications():
+    if os.path.exists(NOTIFICATIONS_FILE):
+        with open(NOTIFICATIONS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+def save_notifications(data):
+    with open(NOTIFICATIONS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    github_save_file(NOTIFICATIONS_FILE, data)
+
+def is_notifications_enabled(user_id):
+    data = load_notifications()
+    return data.get(str(user_id), True)  # включены по умолчанию
+
+def set_notifications(user_id, enabled):
+    data = load_notifications()
+    data[str(user_id)] = enabled
+    save_notifications(data)
+
 # === SENT REMINDERS TRACKING ===
 SENT_FILE = "sent_reminders.json"
 
@@ -378,6 +401,10 @@ async def check_and_send_reminders(context):
                 print(f"  User @{username} not registered")
                 continue
 
+            if not is_notifications_enabled(chat_id):
+                print(f"  Notifications disabled for @{username}, skipping")
+                continue
+
             # Format date/time nicely
             try:
                 start_dt = datetime.fromisoformat(event_start.replace('Z', '+00:00'))
@@ -404,9 +431,9 @@ async def check_and_send_reminders(context):
 def get_main_menu():
     keyboard = [
         [KeyboardButton("Тесты"), KeyboardButton("Мои встречи")],
-        [KeyboardButton("📚 Материалы")]
+        [KeyboardButton("📚 Материалы"), KeyboardButton("🔔 Уведомления")]
     ]
-    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, is_persistent=True)
 
 def get_user_events(username):
     """Get upcoming events for a specific user"""
@@ -1659,6 +1686,33 @@ def get_raads_14_results(answers):
     return result
 
 
+async def show_notifications_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show notification settings with toggle button"""
+    user_id = update.effective_user.id
+    enabled = is_notifications_enabled(user_id)
+    status = "включены" if enabled else "выключены"
+    toggle_text = "🔕 Выключить напоминания" if enabled else "🔔 Включить напоминания"
+    keyboard = [[InlineKeyboardButton(toggle_text, callback_data="notif_toggle")]]
+    await update.message.reply_text(
+        f"Напоминания о сессиях: {status}.",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+async def handle_notif_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Toggle notifications on/off"""
+    query = update.callback_query
+    await query.answer()
+    user_id = update.effective_user.id
+    current = is_notifications_enabled(user_id)
+    set_notifications(user_id, not current)
+    new_status = "включены" if not current else "выключены"
+    toggle_text = "🔕 Выключить напоминания" if not current else "🔔 Включить напоминания"
+    keyboard = [[InlineKeyboardButton(toggle_text, callback_data="notif_toggle")]]
+    await query.message.edit_text(
+        f"Напоминания о сессиях: {new_status}.",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
 async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     pass
 
@@ -1757,6 +1811,8 @@ def main():
     application.add_handler(MessageHandler(filters.LOCATION, handle_location_global))
     application.add_handler(MessageHandler(filters.Regex("^Мои встречи$"), show_events))
     application.add_handler(MessageHandler(filters.Regex("^📚 Материалы$"), show_materials))
+    application.add_handler(MessageHandler(filters.Regex("^🔔 Уведомления$"), show_notifications_settings))
+    application.add_handler(CallbackQueryHandler(handle_notif_toggle, pattern="^notif_toggle$"))
     application.add_handler(MessageHandler(filters.Regex("Назад"), handle_back_to_menu))
 
     print("Bot started! Press Ctrl+C to stop.")
