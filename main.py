@@ -898,6 +898,51 @@ async def show_materials(update: Update, context: ContextTypes.DEFAULT_TYPE):
 ADMIN_ID = 5999980147
 BROADCAST_WAITING_MESSAGE = 42
 
+async def admin_mute(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Admin: disable notifications for a specific user"""
+    if update.effective_user.id != ADMIN_ID:
+        return
+    if not context.args:
+        await update.message.reply_text("Использование: /mute @username")
+        return
+    username = context.args[0].lstrip('@').lower()
+    chat_id = get_chat_id(username)
+    if not chat_id:
+        await update.message.reply_text(f"Пользователь @{username} не найден в базе.")
+        return
+    set_notifications(chat_id, False)
+    await update.message.reply_text(f"Уведомления для @{username} выключены.")
+
+async def admin_unmute(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Admin: enable notifications for a specific user"""
+    if update.effective_user.id != ADMIN_ID:
+        return
+    if not context.args:
+        await update.message.reply_text("Использование: /unmute @username")
+        return
+    username = context.args[0].lstrip('@').lower()
+    chat_id = get_chat_id(username)
+    if not chat_id:
+        await update.message.reply_text(f"Пользователь @{username} не найден в базе.")
+        return
+    set_notifications(chat_id, True)
+    await update.message.reply_text(f"Уведомления для @{username} включены.")
+
+async def admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Admin: list all users with notification status"""
+    if update.effective_user.id != ADMIN_ID:
+        return
+    users = load_users()
+    if not users:
+        await update.message.reply_text("Нет зарегистрированных пользователей.")
+        return
+    lines = []
+    for username, chat_id in users.items():
+        enabled = is_notifications_enabled(chat_id)
+        status = "🔔" if enabled else "🔕"
+        lines.append(f"{status} @{username}")
+    await update.message.reply_text("Пользователи:\n" + "\n".join(lines))
+
 async def broadcast_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start broadcast - admin only"""
     if update.effective_user.id != ADMIN_ID:
@@ -1801,6 +1846,9 @@ def main():
     # Global cancel - works even outside conversations
     application.add_handler(CommandHandler("cancel", cancel))
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("mute", admin_mute))
+    application.add_handler(CommandHandler("unmute", admin_unmute))
+    application.add_handler(CommandHandler("users", admin_users))
     application.add_handler(broadcast_handler)
     application.add_handler(test_handler)
     application.add_handler(tz_handler)
